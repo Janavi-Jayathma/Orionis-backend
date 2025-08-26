@@ -2,13 +2,18 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 from PIL import Image
 from ultralytics import YOLO
+import io
+import random
+import json
 
-app = FastAPI()
+app = FastAPI(title="ORIONIS API", description="Includes Quiz + Constellations Engine")
 
-# Load model
+# --------------------------
+# YOLO Detection Model
+# --------------------------
 model = YOLO("detectionEngine.pt")
 
-@app.post("/predict/")
+@app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
@@ -27,12 +32,42 @@ async def predict(file: UploadFile = File(...)):
                 "xmax": float(box.xyxy[0][2]),
                 "ymax": float(box.xyxy[0][3]),
                 "confidence": float(box.conf[0]),
-                "class": int(box.cls[0])
+                "class": str(box.cls[0]),
+                "name": model.names[int(box.cls[0])]
             }
             predictions.append(prediction)
 
-        return JSONResponse(content=predictions)
+        return JSONResponse(content=prediction, status_code=200)
 
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
+
+# --------------------------
+# Astronomy Quiz API
+# --------------------------
+
+with open("question_bank.json", "r") as f:
+    questions = json.load(f)
+
+@app.get("/")
+def home():
+    return {
+        "message": "Welcome to the Astronomy API 🚀",
+        "endpoints": ["/predict/", "/questions", "/questions/random", "/questions/{id}"]
+    }
+
+@app.get("/questions")
+def get_questions():
+    return questions
+
+@app.get("/questions/random")
+def get_random_question():
+    return random.choice(questions)
+
+@app.get("/questions/{question_id}")
+def get_question(question_id: int):
+    for q in questions:
+        if q["id"] == question_id:
+            return q
+    return {"error": "Question not found"}
