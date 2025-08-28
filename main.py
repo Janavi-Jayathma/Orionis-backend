@@ -12,8 +12,9 @@ app = FastAPI(title="ORIONIS API", description="Includes Quiz + Constellations E
 
 # Allow requests from your frontend origin
 origins = [
-    "http://localhost:8081",  # React Native Web
-    "http://127.0.0.1:8081"
+    "https://orionis-backend.onrender.com/",  # React Native Web
+    "orionis-backend:10000",
+    "http://44.229.227.142:10000" 
 ]
 
 app.add_middleware(
