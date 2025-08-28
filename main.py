@@ -5,8 +5,24 @@ from ultralytics import YOLO
 import io
 import random
 import json
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(title="ORIONIS API", description="Includes Quiz + Constellations Engine")
+
+# Allow requests from your frontend origin
+origins = [
+    "http://localhost:8081",  # React Native Web
+    "http://127.0.0.1:8081"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # or ["*"] for all origins (not recommended for prod)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --------------------------
 # YOLO Detection Model
